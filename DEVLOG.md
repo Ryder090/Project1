@@ -20,3 +20,23 @@
 - Build out the landing page hero section.
 - Set up a clean navigation bar.
 - Define the global CSS theme.
+
+## Phase 2: Core Product Flow
+
+**Form State & UX:**
+- Decided to use a multi-step form for the audit flow. Breaking it down into Company Details -> Tool Stack -> Results reduces cognitive load.
+- Integrated `react-hook-form` and `zod` for the company details validation. It's solid and prevents junk data.
+- Built a Zustand store (`useAuditStore`) with local storage persistence. This was a crucial design decision because if a user accidentally reloads on step 2, they shouldn't lose their data.
+
+**Audit Logic Constraints:**
+- Implemented `audit-engine.ts`. I explicitly chose *not* to use AI for the actual math/calculations here. AI is too non-deterministic for financial audits. Instead, it uses rule-based heuristics (e.g., detecting if a team is paying for both Claude and ChatGPT and recommending consolidation).
+- Created `PRICING_DATA.md` to track standard SaaS pricing used in the heuristics.
+
+**UI Adjustments:**
+- Used Framer Motion (or simple Tailwind transitions) for step transitions.
+- The results page is starting to look good, using color-coded cards (green for savings, amber for warnings).
+
+**Next Steps (Phase 3):**
+- Need to hook this up to Supabase to capture leads and save the audit result permanently.
+- Want to add a Resend integration to email the report.
+- We should add an actual AI summary block to the results page to make it feel premium.

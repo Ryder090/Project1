@@ -31,4 +31,8 @@ Right now, the architecture is quite simple. We have a robust foundation using N
 
 ## Progress
 
-We are currently in **Phase 1** of development, focusing on project setup, foundation, and basic UI.
+We are currently in **Phase 2** of development, having completed the core product flow.
+
+### Features Built So Far:
+- **Phase 1**: Modern SaaS landing page, dark mode theme, shadcn/ui components.
+- **Phase 2**: Multi-step audit flow, form validation with Zod, local state persistence via Zustand, and a deterministic rule-based savings engine.
