@@ -40,3 +40,26 @@
 - Need to hook this up to Supabase to capture leads and save the audit result permanently.
 - Want to add a Resend integration to email the report.
 - We should add an actual AI summary block to the results page to make it feel premium.
+
+## Phase 3: Backend & Advanced Features
+
+**Supabase Integration:**
+- Setup the Supabase client (`src/lib/supabase.ts`) and configured the server actions (`src/app/actions.ts`) to capture leads and store audit data.
+- Opted for a graceful fallback if the database keys aren't present yet, allowing the app to still function and display the AI summary.
+
+**Shareable Reports:**
+- Created a dynamic route `/report/[id]` that fetches the saved audit from Supabase.
+- Added OpenGraph metadata so the links look good when shared on Twitter/Slack.
+
+**AI Summary & Emails:**
+- Built the `generateAuditSummary` logic. I decided to mock this with structured logic for the MVP to avoid blocking deployment on OpenAI keys, but I documented the exact prompt we would use in `PROMPTS.md`.
+- Integrated `resend` to fire off the transactional email with the executive summary and a link to the full report.
+
+**Security:**
+- Added basic in-memory rate limiting to the Server Action. It limits requests by IP to prevent abuse.
+
+**Next Steps (Phase 4):**
+- Polish the UI with Framer Motion animations.
+- Optimize accessibility and performance (Lighthouse).
+- Set up Vitest and GitHub Actions for CI.
+- Finalize all the business and technical documentation.

@@ -9,8 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, AlertTriangle, CheckCircle, TrendingDown } from "lucide-react";
 import Link from "next/link";
 
+import { useState } from "react";
+import { saveAuditAndCaptureLead } from "@/app/actions";
+import { Input } from "@/components/ui/input";
+
 export function ResultsStep({ onPrev }: { onPrev: () => void }) {
   const { formData, reset } = useAuditStore();
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [reportLink, setReportLink] = useState<string | null>(null);
   
   const results = useMemo(() => {
     return runAuditEngine(formData);
@@ -18,7 +26,25 @@ export function ResultsStep({ onPrev }: { onPrev: () => void }) {
 
   const handleStartOver = () => {
     reset();
-    window.location.reload(); // Simple way to reset state for MVP
+    window.location.reload(); 
+  };
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    setIsSubmitting(true);
+    
+    // Call server action
+    const res = await saveAuditAndCaptureLead(email, formData, results);
+    
+    setIsSubmitting(false);
+    if (res.success && res.summary) {
+      setAiSummary(res.summary);
+      setReportLink(`/report/${res.reportId}`);
+    } else {
+      alert("Something went wrong saving the report. Using local fallback.");
+      setAiSummary("Based on your data, there are several key areas to optimize. Consolidate your tooling to eliminate overlaps.");
+    }
   };
 
   return (
@@ -29,6 +55,25 @@ export function ResultsStep({ onPrev }: { onPrev: () => void }) {
           Based on {formData.companyName}'s current usage of {formData.tools.length} AI tools.
         </p>
       </div>
+
+      {/* AI Summary Block */}
+      {aiSummary && (
+        <Card className="bg-primary/5 border-primary/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-primary flex items-center gap-2">
+              ✨ AI Executive Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-relaxed">{aiSummary}</p>
+            {reportLink && (
+              <div className="mt-4 p-3 bg-background rounded-md border text-xs font-mono break-all">
+                Shareable Link: <Link href={reportLink} className="text-primary hover:underline">{reportLink}</Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Top Level Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -107,17 +152,29 @@ export function ResultsStep({ onPrev }: { onPrev: () => void }) {
       </div>
 
       {/* Call to Action for Phase 3 (Lead capture) */}
-      <Card className="bg-primary/5 border-primary/20 mt-8">
-        <CardContent className="p-6 text-center space-y-4">
-          <h3 className="font-semibold text-lg">Want these results emailed to you?</h3>
-          <p className="text-sm text-muted-foreground">
-            Get a detailed PDF report and a step-by-step guide on how to migrate your team without losing productivity.
-          </p>
-          <Button className="w-full sm:w-auto">
-            Email me the report <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </CardContent>
-      </Card>
+      {!aiSummary && (
+        <Card className="bg-primary/5 border-primary/20 mt-8">
+          <CardContent className="p-6 text-center space-y-4">
+            <h3 className="font-semibold text-lg">Generate AI Executive Summary & Save Report</h3>
+            <p className="text-sm text-muted-foreground">
+              Enter your email to get a shareable link and an AI-generated narrative to present to your leadership team.
+            </p>
+            <form onSubmit={handleEmailSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+              <Input 
+                type="email" 
+                placeholder="founder@startup.com" 
+                required 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubmitting}
+              />
+              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto shrink-0">
+                {isSubmitting ? "Generating..." : "Generate Summary"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="pt-4 flex justify-center gap-4">
         <Button variant="ghost" onClick={handleStartOver}>Start Over</Button>
