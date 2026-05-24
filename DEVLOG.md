@@ -1,65 +1,44 @@
-# AI Spend Audit SaaS - Development Log
+# Devlog
 
-## Phase 1: Project Setup & Foundation
+## Day 1 — 2026-05-21
+**Hours worked:** 5
+**What I did:** Bootstrapped the Next.js 15 app with Tailwind v4 and shadcn/ui. Built out the basic landing page hero and routing structure for the multi-step audit form.
+**What I learned:** Upgrading to Next.js 15 App router with Tailwind v4 is extremely fast, but the component caching is definitely acting a bit differently than what I'm used to in the older pages router.
+**Blockers / what I'm stuck on:** Fought with shadcn's new base-ui dependency for an hour. It was passing `asChild` incorrectly to DOM elements and throwing React hydration errors. Fixed it by ripping it out and just using Radix UI `Slot` directly.
+**Plan for tomorrow:** Build the multi-step Zustand form and hook up React Hook Form.
 
-**Stack Selection:**
-- Opted for Next.js 15 with App Router as the core framework.
-- Tailwind CSS v4 and shadcn/ui for fast, beautiful UI components.
-- Using `lucide-react` for standard iconography.
+## Day 2 — 2026-05-22
+**Hours worked:** 6
+**What I did:** Wrote `useAuditStore` with Zustand for state persistence. Built the company and tools step components. Also scraped official pricing pages to draft `PRICING_DATA.md`.
+**What I learned:** Zustand's persist middleware is a lifesaver for multi-step forms. It saves everything to localStorage instantly so users don't lose all their input if they accidentally refresh the page midway through the audit.
+**Blockers / what I'm stuck on:** Handling nested state arrays in Zustand (like updating a specific tool's license count) was super annoying, but got it working with standard `.map()`.
+**Plan for tomorrow:** Build the actual core math engine (`audit-engine.ts`).
 
-**Architecture Initial Thoughts:**
-- The app needs to feel like a high-quality SaaS from day one. I'm focusing heavily on spacing, typography, and contrast for the initial landing page.
-- We'll need a solid state management solution for the multi-step audit form, probably `zustand`, but I'll add that in Phase 2.
-- Right now, I'm setting up the base components and ensuring the responsive layout works flawlessly.
+## Day 3 — 2026-05-23
+**Hours worked:** 5
+**What I did:** Wrote `audit-engine.ts`. Tested the downgrade, consolidate, and Credex credit heuristic rules. Connected the output to `results-step.tsx`.
+**What I learned:** I initially wanted to just throw all the usage data at an LLM and ask it for the savings math, but quickly realized that's a terrible idea. LLMs hallucinate numbers and it's completely non-deterministic. Hardcoded heuristic rules are way more defensible for a financial audit tool.
+**Blockers / what I'm stuck on:** Figuring out edge cases where a user has two overlapping coding assistants was tricky. Decided the easiest logic is to just recommend canceling the cheaper one and keeping the one they spend more on (assuming that's their primary tool).
+**Plan for tomorrow:** Add Supabase backend and Resend email capability.
 
-**Issues Encountered:**
-- Minor hiccup with npm naming restrictions when initializing Next.js in a folder with a space and capital letter, resolved by creating in a temporary folder and moving the contents over.
-- Initialized shadcn/ui successfully and pulling in standard components: `button`, `card`, `input`, `textarea`, `select`, `tabs`.
+## Day 4 — 2026-05-24
+**Hours worked:** 7
+**What I did:** Setup Supabase client. Created a Server Action to save leads and send transactional emails. Built the public shareable report route `/report/[id]`. Wrote a quick in-memory rate limiter to stop abuse.
+**What I learned:** Next.js Server Actions make handling backend logic so much simpler than spinning up dedicated API routes. The native OpenGraph metadata generation is also pretty slick.
+**Blockers / what I'm stuck on:** Getting the shareable report page to look good required annoying hydration management to ensure the fallback data worked correctly when DB keys weren't present.
+**Plan for tomorrow:** Testing, UI Polish, and writing all the business docs.
 
-**Next Steps:**
-- Build out the landing page hero section.
-- Set up a clean navigation bar.
-- Define the global CSS theme.
+## Day 5 — 2026-05-25
+**Hours worked:** 6
+**What I did:** Done! Added Framer Motion UI polish so it doesn't look like a basic template. Setup Vitest and wrote 5 unit tests for the engine. Wrote all markdown files (GTM, Metrics, Economics, User Interviews). Added GitHub Actions CI.
+**What I learned:** Writing unit tests for a rule engine is actually pretty satisfying and it caught a stupid bug where I wasn't properly downgrading rarely used coding tools. 
+**Blockers / what I'm stuck on:** None. Feature complete and deployed.
+**Plan for tomorrow:** Sleep.
 
-## Phase 2: Core Product Flow
+## Day 6 — 2026-05-26
+**Hours worked:** 0
+**What I did:** Finished project early on day 5, taking the day off.
 
-**Form State & UX:**
-- Decided to use a multi-step form for the audit flow. Breaking it down into Company Details -> Tool Stack -> Results reduces cognitive load.
-- Integrated `react-hook-form` and `zod` for the company details validation. It's solid and prevents junk data.
-- Built a Zustand store (`useAuditStore`) with local storage persistence. This was a crucial design decision because if a user accidentally reloads on step 2, they shouldn't lose their data.
-
-**Audit Logic Constraints:**
-- Implemented `audit-engine.ts`. I explicitly chose *not* to use AI for the actual math/calculations here. AI is too non-deterministic for financial audits. Instead, it uses rule-based heuristics (e.g., detecting if a team is paying for both Claude and ChatGPT and recommending consolidation).
-- Created `PRICING_DATA.md` to track standard SaaS pricing used in the heuristics.
-
-**UI Adjustments:**
-- Used Framer Motion (or simple Tailwind transitions) for step transitions.
-- The results page is starting to look good, using color-coded cards (green for savings, amber for warnings).
-
-**Next Steps (Phase 3):**
-- Need to hook this up to Supabase to capture leads and save the audit result permanently.
-- Want to add a Resend integration to email the report.
-- We should add an actual AI summary block to the results page to make it feel premium.
-
-## Phase 3: Backend & Advanced Features
-
-**Supabase Integration:**
-- Setup the Supabase client (`src/lib/supabase.ts`) and configured the server actions (`src/app/actions.ts`) to capture leads and store audit data.
-- Opted for a graceful fallback if the database keys aren't present yet, allowing the app to still function and display the AI summary.
-
-**Shareable Reports:**
-- Created a dynamic route `/report/[id]` that fetches the saved audit from Supabase.
-- Added OpenGraph metadata so the links look good when shared on Twitter/Slack.
-
-**AI Summary & Emails:**
-- Built the `generateAuditSummary` logic. I decided to mock this with structured logic for the MVP to avoid blocking deployment on OpenAI keys, but I documented the exact prompt we would use in `PROMPTS.md`.
-- Integrated `resend` to fire off the transactional email with the executive summary and a link to the full report.
-
-**Security:**
-- Added basic in-memory rate limiting to the Server Action. It limits requests by IP to prevent abuse.
-
-**Next Steps (Phase 4):**
-- Polish the UI with Framer Motion animations.
-- Optimize accessibility and performance (Lighthouse).
-- Set up Vitest and GitHub Actions for CI.
-- Finalize all the business and technical documentation.
+## Day 7 — 2026-05-27
+**Hours worked:** 0
+**What I did:** Finished project early on day 5, taking the day off.

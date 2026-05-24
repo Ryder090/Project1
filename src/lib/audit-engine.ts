@@ -3,140 +3,100 @@ import { PRICING_DATA } from "./pricing-data";
 
 export interface AuditRecommendation {
   toolId: string;
-  action: "keep" | "consolidate" | "downgrade" | "cancel";
+  action: "keep" | "cancel" | "consolidate" | "downgrade" | "credits";
   reason: string;
-  potentialSavings: number; // Monthly
+  potentialSavings: number;
 }
 
 export interface AuditResult {
-  totalCurrentSpend: number; // Monthly
-  totalOptimizedSpend: number; // Monthly
-  totalSavings: number; // Monthly
+  totalCurrentSpend: number;
+  totalOptimizedSpend: number;
+  totalSavings: number;
   recommendations: AuditRecommendation[];
 }
 
-export function runAuditEngine(formData: AuditFormData): AuditResult {
+export function runAuditEngine(data: AuditFormData): AuditResult {
   let totalCurrentSpend = 0;
   let totalOptimizedSpend = 0;
   const recommendations: AuditRecommendation[] = [];
 
-  // Group tools by category
-  const chatTools = formData.tools.filter(t => PRICING_DATA[t.toolId]?.category === "Chat");
-  const codingTools = formData.tools.filter(t => PRICING_DATA[t.toolId]?.category === "Coding");
+  const chatTools = data.tools.filter(t => PRICING_DATA[t.toolId]?.category === "Chat");
+  const codingTools = data.tools.filter(t => PRICING_DATA[t.toolId]?.category === "Coding");
+  const apiTools = data.tools.filter(t => PRICING_DATA[t.toolId]?.category === "API");
 
-  // Basic Rule 1: Consolidate Chat Tools
-  // If a company has multiple chat tools (e.g. ChatGPT + Claude), recommend consolidating to one.
-  if (chatTools.length > 1) {
-    // Keep the one with the most licenses or the first one as primary
-    const sortedChat = [...chatTools].sort((a, b) => b.licenses - a.licenses);
-    const primary = sortedChat[0];
-    
-    chatTools.forEach(tool => {
-      const price = PRICING_DATA[tool.toolId]?.basePrice || 0;
-      const spend = price * tool.licenses;
-      totalCurrentSpend += spend;
+  for (const tool of data.tools) {
+    const def = PRICING_DATA[tool.toolId];
+    if (!def) continue;
 
-      if (tool.toolId === primary.toolId) {
-        totalOptimizedSpend += spend;
-        recommendations.push({
-          toolId: tool.toolId,
-          action: "keep",
-          reason: "Primary chat tool based on license volume.",
-          potentialSavings: 0,
-        });
-      } else {
-        // Recommend canceling others
-        recommendations.push({
-          toolId: tool.toolId,
-          action: "consolidate",
-          reason: `Consolidate chat usage to ${PRICING_DATA[primary.toolId].name} to reduce overlapping subscriptions.`,
-          potentialSavings: spend,
-        });
+    // Handle stale localStorage state from earlier versions
+    const currentSpend = tool.currentSpend ?? (def.tiers[0]?.price * (tool.licenses || 1)) ?? 0;
+    const tierId = tool.tierId ?? def.tiers[0]?.id;
+    const licenses = tool.licenses || 1;
+
+    totalCurrentSpend += currentSpend;
+
+    let toolAction: AuditRecommendation["action"] = "keep";
+    let reason = "Standard, optimized usage.";
+    let optimizedSpend = currentSpend;
+
+    if ((tierId === "team" || tierId === "business") && licenses < 3) {
+      toolAction = "downgrade";
+      reason = `${def.name} ${tierId} is overkill for ${licenses} users. Moving to Pro/Individual saves money with similar core capabilities.`;
+      const cheaperTier = def.tiers.find(t => t.id === "pro" || t.id === "individual" || t.id === "premium");
+      if (cheaperTier) {
+        optimizedSpend = cheaperTier.price * licenses;
       }
-    });
-  } else if (chatTools.length === 1) {
-    const tool = chatTools[0];
-    const price = PRICING_DATA[tool.toolId]?.basePrice || 0;
-    const spend = price * tool.licenses;
-    totalCurrentSpend += spend;
-    totalOptimizedSpend += spend;
-    
-    // Check usage frequency
-    if (tool.usageFrequency === "rarely") {
-      recommendations.push({
-        toolId: tool.toolId,
-        action: "downgrade",
-        reason: "Low usage detected. Consider downgrading to a free tier or sharing team seats if applicable.",
-        potentialSavings: spend * 0.5, // Arbitrary 50% savings estimation
-      });
-      totalOptimizedSpend -= spend * 0.5;
-    } else {
-      recommendations.push({
-        toolId: tool.toolId,
-        action: "keep",
-        reason: "Healthy usage of primary chat tool.",
-        potentialSavings: 0,
-      });
+    } 
+    else if (tierId === "enterprise" || currentSpend >= 500) {
+      toolAction = "credits";
+      reason = `You are paying retail prices for ${def.name}. Sourcing unused credits through secondary markets can reduce this by 20-30%.`;
+      optimizedSpend = currentSpend * 0.75;
     }
-  }
+    else if (tool.usageFrequency === "rarely") {
+      toolAction = "downgrade";
+      reason = `Low usage frequency detected. Consider moving to a free tier or shared pool.`;
+      optimizedSpend = 0;
+    }
 
-  // Basic Rule 2: Coding tool overlap (e.g. Cursor + Copilot)
-  if (codingTools.length > 1) {
-    const sortedCoding = [...codingTools].sort((a, b) => b.licenses - a.licenses);
-    const primary = sortedCoding[0];
-    
-    codingTools.forEach(tool => {
-      const price = PRICING_DATA[tool.toolId]?.basePrice || 0;
-      const spend = price * tool.licenses;
-      totalCurrentSpend += spend;
-
-      if (tool.toolId === primary.toolId) {
-        totalOptimizedSpend += spend;
-        recommendations.push({
-          toolId: tool.toolId,
-          action: "keep",
-          reason: "Primary coding assistant.",
-          potentialSavings: 0,
-        });
-      } else {
-        recommendations.push({
-          toolId: tool.toolId,
-          action: "cancel",
-          reason: `High overlap with ${PRICING_DATA[primary.toolId].name}. Teams rarely need multiple AI coding assistants per developer.`,
-          potentialSavings: spend,
-        });
+    if (def.category === "Chat" && chatTools.length > 1) {
+      const highestChat = [...chatTools].sort((a, b) => b.currentSpend - a.currentSpend)[0];
+      if (tool.toolId !== highestChat.toolId && toolAction !== "cancel") {
+        toolAction = "consolidate";
+        reason = `Overlapping Chat tool detected. Standardizing on ${PRICING_DATA[highestChat.toolId].name} eliminates fragmented knowledge and saves costs.`;
+        optimizedSpend = 0;
       }
-    });
-  } else if (codingTools.length === 1) {
-    const tool = codingTools[0];
-    const price = PRICING_DATA[tool.toolId]?.basePrice || 0;
-    const spend = price * tool.licenses;
-    totalCurrentSpend += spend;
-    totalOptimizedSpend += spend;
-    
+    }
+
+    if (def.category === "Coding" && codingTools.length > 1) {
+      const highestCode = [...codingTools].sort((a, b) => b.currentSpend - a.currentSpend)[0];
+      if (tool.toolId !== highestCode.toolId && toolAction !== "cancel") {
+        toolAction = "consolidate";
+        reason = `Overlapping Coding assistant detected. Standardizing on ${PRICING_DATA[highestCode.toolId].name} improves codebase consistency.`;
+        optimizedSpend = 0;
+      }
+    }
+
+    if (data.primaryUseCase === "writing" && def.category === "Coding") {
+      toolAction = "cancel";
+      reason = `Your primary use case is content/writing, but you are paying for an engineering assistant (${def.name}).`;
+      optimizedSpend = 0;
+    }
+
+    totalOptimizedSpend += optimizedSpend;
+    const potentialSavings = currentSpend - optimizedSpend;
+
     recommendations.push({
       toolId: tool.toolId,
-      action: "keep",
-      reason: "Standard developer tooling.",
-      potentialSavings: 0,
+      action: toolAction,
+      reason,
+      potentialSavings: Math.max(0, potentialSavings)
     });
   }
-
-  // Basic Rule 3: Any other tools (APIs, etc) - keeping it simple for MVP
-  const otherTools = formData.tools.filter(t => !["Chat", "Coding"].includes(PRICING_DATA[t.toolId]?.category || ""));
-  otherTools.forEach(tool => {
-    const price = PRICING_DATA[tool.toolId]?.basePrice || 0;
-    const spend = price * tool.licenses;
-    totalCurrentSpend += spend;
-    totalOptimizedSpend += spend;
-  });
-
-  const totalSavings = totalCurrentSpend - totalOptimizedSpend;
 
   return {
     totalCurrentSpend,
     totalOptimizedSpend,
-    totalSavings,
-    recommendations,
+    totalSavings: Math.max(0, totalCurrentSpend - totalOptimizedSpend),
+    recommendations
   };
 }

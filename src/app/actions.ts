@@ -3,15 +3,19 @@
 import { AuditResult } from "@/lib/audit-engine";
 import { generateAuditSummary } from "@/lib/ai-summary";
 import { supabase } from "@/lib/supabase";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { AuditFormData } from "@/store/useAuditStore";
 
-const resend = new Resend(process.env.RESEND_API_KEY || "re_mock_key");
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
-// Simple in-memory rate limiting for the MVP
-// In production, use Upstash Redis or Vercel KV
 const rateLimitMap = new Map<string, number>();
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_WINDOW = 60 * 1000;
 const MAX_REQUESTS = 3;
 
 export async function saveAuditAndCaptureLead(
@@ -20,7 +24,6 @@ export async function saveAuditAndCaptureLead(
   results: AuditResult,
   ipAddress: string = "unknown"
 ) {
-  // 1. Rate Limiting Check
   const now = Date.now();
   const userRequests = rateLimitMap.get(ipAddress) || 0;
   
@@ -31,11 +34,7 @@ export async function saveAuditAndCaptureLead(
   setTimeout(() => rateLimitMap.set(ipAddress, Math.max(0, (rateLimitMap.get(ipAddress) || 1) - 1)), RATE_LIMIT_WINDOW);
 
   try {
-    // 2. Generate AI Summary
     const summary = await generateAuditSummary(formData.companyName, results);
-
-    // 3. Save to Supabase
-    // If the mock key is used, Supabase will fail to insert, so we gracefully handle it
     const reportId = crypto.randomUUID();
     
     if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -50,14 +49,13 @@ export async function saveAuditAndCaptureLead(
       });
 
       if (error) {
-        console.error("Supabase Error (Expected if no real keys):", error.message);
+        console.error("Supabase Error:", error.message);
       }
     }
 
-    // 4. Send Email via Resend
-    if (process.env.RESEND_API_KEY) {
-      await resend.emails.send({
-        from: 'AuditAI <hello@auditai.com>',
+    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+      await transporter.sendMail({
+        from: `"AuditAI" <${process.env.GMAIL_USER}>`,
         to: email,
         subject: `Your AI Spend Audit Report - ${formData.companyName}`,
         html: `<p>Hi there,</p>

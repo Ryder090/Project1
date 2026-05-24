@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 const companySchema = z.object({
   companyName: z.string().min(2, "Company name must be at least 2 characters"),
   employeeCount: z.coerce.number().min(1, "Must have at least 1 employee"),
+  primaryUseCase: z.enum(["coding", "writing", "data", "research", "mixed"]),
 });
 
 type CompanyFormValues = z.infer<typeof companySchema>;
@@ -23,11 +24,12 @@ export function CompanyStep({ onNext }: { onNext: () => void }) {
     defaultValues: {
       companyName: formData.companyName,
       employeeCount: formData.employeeCount || 0,
+      primaryUseCase: formData.primaryUseCase || "mixed",
     },
   });
 
   const onSubmit = (data: CompanyFormValues) => {
-    setCompanyDetails(data.companyName, data.employeeCount);
+    setCompanyDetails(data.companyName, data.employeeCount, data.primaryUseCase);
     onNext();
   };
 
@@ -65,6 +67,24 @@ export function CompanyStep({ onNext }: { onNext: () => void }) {
           />
           {errors.employeeCount && (
             <p className="text-sm text-destructive">{errors.employeeCount.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="primaryUseCase">Primary AI Use Case</Label>
+          <select
+            id="primaryUseCase"
+            {...register("primaryUseCase")}
+            className="flex h-9 w-full max-w-md rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="mixed">Mixed / General</option>
+            <option value="coding">Engineering & Coding</option>
+            <option value="writing">Content & Copywriting</option>
+            <option value="data">Data Analysis</option>
+            <option value="research">Research</option>
+          </select>
+          {errors.primaryUseCase && (
+            <p className="text-sm text-destructive">{errors.primaryUseCase.message}</p>
           )}
         </div>
       </div>

@@ -1,39 +1,36 @@
-# AI Spend Audit SaaS
+# AuditAI: The "Mint for AI Tool Spend"
 
-A full-stack web application designed to help startups analyze and optimize their overspending on AI tools like ChatGPT, Claude, Cursor, GitHub Copilot, and more.
+AuditAI is a free web app that helps startup founders and engineering managers instantly audit their SaaS AI tool stack (ChatGPT, Cursor, Copilot, Claude, etc.) to uncover thousands of dollars in wasted capital from overprovisioning, overlapping tools, and retail pricing. It serves as a high-value lead generation tool for Credex.
 
-## Tech Stack
-- Next.js 15 (App Router)
-- TypeScript
-- Tailwind CSS v4
-- shadcn/ui
-- Lucide Icons
+## Preview
+*(Please see the 30-second screen recording demonstrating the UI flow linked below)*
+[Watch Demo on YouTube / Loom]
 
-*(More technologies will be added as backend and advanced features are integrated.)*
-
-## Getting Started
+## Quick Start
 
 1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
-2. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
+2. **Run locally:**
+```bash
+npm run dev
+```
 
-3. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. **Deploy:**
+This project is optimized for Vercel. 
+```bash
+npx vercel deploy
+```
+Make sure to add your `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `RESEND_API_KEY` to the Vercel environment variables.
 
-## Architecture
+## Deployed URL
+The live version of this project is deployed at: **[DEPLOYED_URL_HERE]**
 
-Right now, the architecture is quite simple. We have a robust foundation using Next.js 15, and we are heavily relying on React Server Components where possible, pushing state and interactively to client components as needed. The design system is built on top of Tailwind CSS and shadcn/ui.
-
-## Progress
-
-We are currently in **Phase 3** of development, having completed the core product flow and backend integrations.
-
-### Features Built So Far:
-- **Phase 1**: Modern SaaS landing page, dark mode theme, shadcn/ui components.
-- **Phase 2**: Multi-step audit flow, form validation with Zod, local state persistence via Zustand, and a deterministic rule-based savings engine.
-- **Phase 3**: Supabase integration for lead capture, shareable public audit reports with OpenGraph data, mock AI executive summaries, and Resend transactional emails.
+## Decisions (Trade-offs)
+1. **Rule-based Engine vs AI Math:** I chose to hardcode the financial logic rather than passing the usage to an LLM. AI is non-deterministic, and a financial audit must be defensible and mathematically rigorous.
+2. **Zustand vs URL Params:** I used Zustand with localStorage for state persistence. Storing complex arrays of tools in URL params (nuqs) would create massive, ugly URLs and hit string length limits.
+3. **Server Actions vs API Routes:** I opted for Server Actions to handle the lead capture and Resend email logic. This reduces boilerplate and keeps backend logic closely coupled with the frontend form.
+4. **Mocked AI Fallback:** I built a structured logic fallback for the "AI Executive Summary". This ensures the MVP can be run locally by anyone without requiring them to set up an OpenAI/Anthropic API key first.
+5. **In-Memory Rate Limiting:** I used an in-memory Map for rate limiting the lead capture. While Redis (Upstash) is better for production, an in-memory map keeps the MVP completely free of external dependencies for local testing while still providing basic honeypot/abuse protection.

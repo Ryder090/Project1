@@ -1,20 +1,46 @@
 import { AuditResult } from "./audit-engine";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-/**
- * In a real production app, this would call OpenAI or Anthropic API.
- * For this MVP, we use structured logic to mock a believable AI summary
- * and provide a fallback if the AI service fails.
- */
 export async function generateAuditSummary(companyName: string, result: AuditResult): Promise<string> {
-  // Simulate network delay for AI generation
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+
+      const systemPrompt = `You are an expert SaaS financial auditor and fractional CFO.
+Your goal is to take data representing a company's AI tool spend and write a concise, hard-hitting 3-sentence executive summary.
+Focus on:
+1. The total potential savings.
+2. The primary recommendation (e.g., consolidating tools, buying credits via Credex).
+3. The business impact (e.g., reducing fragmentation, standardizing workflows).
+Do NOT be overly polite. Be direct, authoritative, and helpful.`;
+
+      const userPrompt = `Company Name: ${companyName}
+Total Current Spend: $${result.totalCurrentSpend}
+Total Optimized Spend: $${result.totalOptimizedSpend}
+Total Potential Savings: $${result.totalSavings}
+
+Recommendations:
+${result.recommendations.map(r => `- Action: ${r.action}\n- Tool: ${r.toolId}\n- Reason: ${r.reason}`).join('\n')}
+
+Based on the above, write the 3-sentence summary.`;
+
+      const aiResponse = await model.generateContent(systemPrompt + "\n\n" + userPrompt);
+      
+      const summaryText = aiResponse.response.text();
+      if (summaryText) {
+        return summaryText;
+      }
+    } catch (error) {
+      console.error("Gemini API Error, falling back:", error);
+    }
+  }
 
   const totalTools = result.recommendations.length;
   const savingsPct = result.totalCurrentSpend > 0 
     ? Math.round((result.totalSavings / result.totalCurrentSpend) * 100)
     : 0;
 
-  // Fallback / Mock AI generated narrative
   let narrative = `Based on our analysis of ${companyName}'s SaaS spend across ${totalTools} AI tools, `;
 
   if (savingsPct > 20) {

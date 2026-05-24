@@ -153,13 +153,32 @@ export function ResultsStep({ onPrev }: { onPrev: () => void }) {
 
       {/* Call to Action for Phase 3 (Lead capture) */}
       {!aiSummary && (
-        <Card className="bg-primary/5 border-primary/20 mt-8">
+        <Card className={`mt-8 ${results.totalSavings > 500 ? 'bg-primary/10 border-primary/30' : 'bg-muted/10 border-border/40'}`}>
           <CardContent className="p-6 text-center space-y-4">
-            <h3 className="font-semibold text-lg">Generate AI Executive Summary & Save Report</h3>
-            <p className="text-sm text-muted-foreground">
-              Enter your email to get a shareable link and an AI-generated narrative to present to your leadership team.
-            </p>
-            <form onSubmit={handleEmailSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+            {results.totalSavings > 500 ? (
+              <>
+                <h3 className="font-bold text-xl text-primary">💰 Huge Savings Opportunity Detected</h3>
+                <p className="text-sm text-muted-foreground">
+                  You are overspending by ${results.totalSavings}/mo. Enter your email to get your full AI report, and book a free Credex Consultation to help you migrate and secure these enterprise discounts.
+                </p>
+              </>
+            ) : results.totalSavings < 100 ? (
+              <>
+                <h3 className="font-semibold text-lg">You're spending well.</h3>
+                <p className="text-sm text-muted-foreground">
+                  Your AI stack is already highly optimized! We didn't find major savings, but enter your email to get notified when new discounts or tools apply to your stack.
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="font-semibold text-lg">Generate AI Executive Summary & Save Report</h3>
+                <p className="text-sm text-muted-foreground">
+                  Enter your email to get a shareable link and an AI-generated narrative to present to your leadership team.
+                </p>
+              </>
+            )}
+            
+            <form onSubmit={handleEmailSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto pt-2">
               <Input 
                 type="email" 
                 placeholder="founder@startup.com" 
@@ -169,7 +188,7 @@ export function ResultsStep({ onPrev }: { onPrev: () => void }) {
                 disabled={isSubmitting}
               />
               <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto shrink-0">
-                {isSubmitting ? "Generating..." : "Generate Summary"}
+                {isSubmitting ? "Generating..." : "Get My Report"}
               </Button>
             </form>
           </CardContent>

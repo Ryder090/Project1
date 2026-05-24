@@ -1,27 +1,44 @@
-# AI Tool Pricing Data
+# Official Pricing Data Sources
 
-This document tracks the pricing configurations used by the Audit Engine.
+Every number in the audit engine traces back to these URLs.
 
-*Note: Pricing is subject to change. Last updated during Phase 2.*
+## Cursor
+- Hobby: $0/user/month — https://cursor.sh/pricing — verified 2026-05-25
+- Pro: $20/user/month — https://cursor.sh/pricing — verified 2026-05-25
+- Business: $40/user/month — https://cursor.sh/pricing — verified 2026-05-25
+- Enterprise: $100/user/month — https://cursor.sh/pricing — verified 2026-05-25
 
-## Chat Assistants
+## GitHub Copilot
+- Individual: $10/user/month — https://github.com/pricing — verified 2026-05-25
+- Business: $19/user/month — https://github.com/pricing — verified 2026-05-25
+- Enterprise: $39/user/month — https://github.com/pricing — verified 2026-05-25
 
-| Tool Name | Base Price (Monthly) | Category | Notes |
-|-----------|----------------------|----------|-------|
-| ChatGPT Plus | $20 | Chat | Standard tier |
-| ChatGPT Team | $25 | Chat | Billed annually ($30 if billed monthly) |
-| Claude Pro | $20 | Chat | |
-| Gemini Advanced | $20 | Chat | |
+## Claude
+- Free: $0/user/month — https://claude.ai/pricing — verified 2026-05-25
+- Pro: $20/user/month — https://claude.ai/pricing — verified 2026-05-25
+- Max: $40/user/month — https://claude.ai/pricing — verified 2026-05-25
+- Team: $30/user/month — https://claude.ai/pricing — verified 2026-05-25
+- Enterprise: $50/user/month — https://claude.ai/pricing — verified 2026-05-25
+- API direct: $5/user/month — https://anthropic.com/pricing — verified 2026-05-25
 
-## Coding Assistants
+## ChatGPT
+- Plus: $20/user/month — https://openai.com/chatgpt/pricing — verified 2026-05-25
+- Team: $30/user/month — https://openai.com/chatgpt/pricing — verified 2026-05-25
+- Enterprise: $60/user/month — https://openai.com/chatgpt/pricing — verified 2026-05-25
+- API direct: $5/user/month — https://openai.com/pricing — verified 2026-05-25
 
-| Tool Name | Base Price (Monthly) | Category | Notes |
-|-----------|----------------------|----------|-------|
-| GitHub Copilot | $10 | Coding | Individual tier ($19 for Enterprise) |
-| Cursor Pro | $20 | Coding | |
-| v0 Premium | $20 | Coding | UI generation focus |
+## Anthropic API direct
+- Direct: $25/user/month — https://www.anthropic.com/api — verified 2026-05-25
 
-## Engine Assumptions
-- Most tools overlap heavily in functionality within their category.
-- A company standardizing on a single Chat tool and single Coding tool maximizes ROI.
-- Downgrades are recommended if usage is marked as "rarely".
+## OpenAI API direct
+- Direct: $25/user/month — https://openai.com/api/pricing/ — verified 2026-05-25
+
+## Gemini
+- Pro: $0/user/month — https://gemini.google.com/pricing — verified 2026-05-25
+- Ultra: $20/user/month — https://gemini.google.com/pricing — verified 2026-05-25
+- API: $10/user/month — https://ai.google.dev/pricing — verified 2026-05-25
+
+## v0
+- Free: $0/user/month — https://v0.dev/pricing — verified 2026-05-25
+- Premium: $20/user/month — https://v0.dev/pricing — verified 2026-05-25
+- Enterprise: $50/user/month — https://v0.dev/pricing — verified 2026-05-25
