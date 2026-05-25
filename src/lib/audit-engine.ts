@@ -29,8 +29,8 @@ export function runAuditEngine(data: AuditFormData): AuditResult {
     if (!def) continue;
 
     // Handle stale localStorage state from earlier versions
-    const currentSpend = tool.currentSpend ?? (def.tiers[0]?.price * (tool.licenses || 1)) ?? 0;
-    const tierId = tool.tierId ?? def.tiers[0]?.id;
+    const currentSpend = tool.currentSpend !== undefined ? tool.currentSpend : (def.tiers[0]?.price * (tool.licenses || 1)) || 0;
+    const tierId = tool.tierId || def.tiers[0]?.id;
     const licenses = tool.licenses || 1;
 
     totalCurrentSpend += currentSpend;
@@ -60,7 +60,7 @@ export function runAuditEngine(data: AuditFormData): AuditResult {
 
     if (def.category === "Chat" && chatTools.length > 1) {
       const highestChat = [...chatTools].sort((a, b) => b.currentSpend - a.currentSpend)[0];
-      if (tool.toolId !== highestChat.toolId && toolAction !== "cancel") {
+      if (tool.toolId !== highestChat.toolId) {
         toolAction = "consolidate";
         reason = `Overlapping Chat tool detected. Standardizing on ${PRICING_DATA[highestChat.toolId].name} eliminates fragmented knowledge and saves costs.`;
         optimizedSpend = 0;
@@ -69,7 +69,7 @@ export function runAuditEngine(data: AuditFormData): AuditResult {
 
     if (def.category === "Coding" && codingTools.length > 1) {
       const highestCode = [...codingTools].sort((a, b) => b.currentSpend - a.currentSpend)[0];
-      if (tool.toolId !== highestCode.toolId && toolAction !== "cancel") {
+      if (tool.toolId !== highestCode.toolId) {
         toolAction = "consolidate";
         reason = `Overlapping Coding assistant detected. Standardizing on ${PRICING_DATA[highestCode.toolId].name} improves codebase consistency.`;
         optimizedSpend = 0;

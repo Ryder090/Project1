@@ -55,7 +55,7 @@ export function ToolsStep({ onNext, onPrev }: { onNext: () => void, onPrev: () =
       <div className="flex gap-4 items-end">
         <div className="space-y-2 flex-1 max-w-sm">
           <Label>Select Tool</Label>
-          <Select value={selectedToolId} onValueChange={setSelectedToolId}>
+          <Select value={selectedToolId} onValueChange={(val: string | null) => { if (val) setSelectedToolId(val); }}>
             <SelectTrigger>
               <SelectValue placeholder="Choose a tool..." />
             </SelectTrigger>
@@ -96,7 +96,8 @@ export function ToolsStep({ onNext, onPrev }: { onNext: () => void, onPrev: () =
                       <Label className="text-xs">Plan / Tier</Label>
                       <Select 
                         value={tool.tierId} 
-                        onValueChange={(val: string) => {
+                        onValueChange={(val: string | null) => {
+                          if (!val) return;
                           const newTier = toolDef.tiers.find(t => t.id === val);
                           updateTool(tool.toolId, { 
                             tierId: val,
