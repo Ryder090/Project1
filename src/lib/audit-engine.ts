@@ -42,7 +42,7 @@ export function runAuditEngine(data: AuditFormData): AuditResult {
     if ((tierId === "team" || tierId === "business") && licenses < 3) {
       toolAction = "downgrade";
       reason = `${def.name} ${tierId} is overkill for ${licenses} users. Moving to Pro/Individual saves money with similar core capabilities.`;
-      const cheaperTier = def.tiers.find(t => t.id === "pro" || t.id === "individual" || t.id === "premium");
+      const cheaperTier = def.tiers.find(t => t.id === "pro" || t.id === "individual" || t.id === "premium" || t.id === "plus");
       if (cheaperTier) {
         optimizedSpend = cheaperTier.price * licenses;
       }
