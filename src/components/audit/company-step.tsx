@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 
 const companySchema = z.object({
   companyName: z.string().min(2, "Company name must be at least 2 characters"),
-  employeeCount: z.coerce.number().min(1, "Must have at least 1 employee"),
+  employeeCount: z.number().min(1, "Must have at least 1 employee"),
   primaryUseCase: z.enum(["coding", "writing", "data", "research", "mixed"]),
 });
 
@@ -62,7 +62,7 @@ export function CompanyStep({ onNext }: { onNext: () => void }) {
             id="employeeCount" 
             type="number"
             placeholder="50" 
-            {...register("employeeCount")} 
+            {...register("employeeCount", { valueAsNumber: true })} 
             className="max-w-md"
           />
           {errors.employeeCount && (
