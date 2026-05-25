@@ -162,7 +162,7 @@ export function ResultsStep({ onPrev }: { onPrev: () => void }) {
                   You are overspending by ${results.totalSavings}/mo. Enter your email to get your full AI report, and book a free Credex Consultation to help you migrate and secure these enterprise discounts.
                 </p>
               </>
-            ) : results.totalSavings < 100 ? (
+            ) : results.totalSavings === 0 ? (
               <>
                 <h3 className="font-semibold text-lg">You're spending well.</h3>
                 <p className="text-sm text-muted-foreground">
@@ -173,7 +173,7 @@ export function ResultsStep({ onPrev }: { onPrev: () => void }) {
               <>
                 <h3 className="font-semibold text-lg">Generate AI Executive Summary & Save Report</h3>
                 <p className="text-sm text-muted-foreground">
-                  Enter your email to get a shareable link and an AI-generated narrative to present to your leadership team.
+                  We found ${results.totalSavings}/mo in savings! Enter your email to get a shareable link and an AI-generated narrative to present to your leadership team.
                 </p>
               </>
             )}
