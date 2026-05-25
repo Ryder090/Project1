@@ -77,11 +77,11 @@ export function CompanyStep({ onNext }: { onNext: () => void }) {
             {...register("primaryUseCase")}
             className="flex h-9 w-full max-w-md rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <option value="mixed">Mixed / General</option>
-            <option value="coding">Engineering & Coding</option>
-            <option value="writing">Content & Copywriting</option>
-            <option value="data">Data Analysis</option>
-            <option value="research">Research</option>
+            <option value="mixed" className="bg-background text-foreground">Mixed / General</option>
+            <option value="coding" className="bg-background text-foreground">Engineering & Coding</option>
+            <option value="writing" className="bg-background text-foreground">Content & Copywriting</option>
+            <option value="data" className="bg-background text-foreground">Data Analysis</option>
+            <option value="research" className="bg-background text-foreground">Research</option>
           </select>
           {errors.primaryUseCase && (
             <p className="text-sm text-destructive">{errors.primaryUseCase.message}</p>
